@@ -29,6 +29,9 @@
   "@google/generative-ai": "^0.24.1",
   
     
+  "@supabase/supabase-js": "^2.79.0",
+  
+    
   "cors": "^2.8.5",
   
     

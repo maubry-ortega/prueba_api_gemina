@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>SmartStock AI - Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h2 {
+      color: #0d6efd;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #0d6efd;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0b5ed7;
+    }
+
+    pre {
+      background: #f1f3f5;
+      padding: 15px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin-top: 15px;
+      min-height: 60px;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #0d6efd;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h2>💬 SmartStock AI - Demo</h2>
+    <p>Escribe tu consulta en lenguaje natural:</p>
+    <input id="msg" type="text" placeholder="Ej: cuántos buzos hay en stock">
+    <button onclick="enviar()">Enviar</button>
+    <pre id="res"></pre>
+  </div>
+
+  <script>
+    async function enviar() {
+      const msg = document.getElementById("msg").value.trim();
+      const resEl = document.getElementById("res");
+      if (!msg) {
+        resEl.textContent = "Por favor, escribe un mensaje.";
+        return;
+      }
+
+      resEl.innerHTML = '<span class="loader"></span> Procesando consulta...';
+
+      try {
+        const resp = await fetch("http://localhost:3000/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: msg })
+        });
+
+        if (!resp.ok) throw new Error("Error en la respuesta del servidor");
+
+        const data = await resp.json();
+        resEl.textContent = data.reply;
+      } catch (err) {
+        resEl.textContent = "Error de conexión al servidor.";
+        console.error(err);
+      }
+    }
+    document.getElementById("msg").addEventListener("keydown", function(e){
+      if (e.key === "Enter") enviar();
+    });
+  </script>
+</body>
+</html>

@@ -29,19 +29,13 @@
   "@google/generative-ai": "^0.24.1",
   
     
-  "@supabase/supabase-js": "^2.79.0",
-  
-    
   "cors": "^2.8.5",
   
     
   "dotenv": "^17.2.3",
   
     
-  "express": "^5.1.0",
-  
-    
-  "node-fetch": "^3.3.2"
+  "express": "^5.1.0"
   
   }
 }

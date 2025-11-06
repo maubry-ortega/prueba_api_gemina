@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>SmartStock AI - Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,11 +14,7 @@
       align-items: center;
       padding: 40px 20px;
     }
-
-    h2 {
-      color: #0d6efd;
-    }
-
+    h2 { color: #0d6efd; }
     .chat-container {
       width: 100%;
       max-width: 600px;
@@ -26,7 +23,6 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
     input[type="text"] {
       width: 100%;
       padding: 12px;
@@ -37,7 +33,6 @@
       font-size: 16px;
       box-sizing: border-box;
     }
-
     button {
       padding: 10px 20px;
       font-size: 16px;
@@ -48,11 +43,7 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
-    button:hover {
-      background-color: #0b5ed7;
-    }
-
+    button:hover { background-color: #0b5ed7; }
     pre {
       background: #f1f3f5;
       padding: 15px;
@@ -62,7 +53,7 @@
       margin-top: 15px;
       min-height: 60px;
     }
-
+    canvas { margin-top: 20px; }
     .loader {
       display: inline-block;
       width: 18px;
@@ -73,11 +64,7 @@
       animation: spin 0.8s linear infinite;
       vertical-align: middle;
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -87,9 +74,12 @@
     <input id="msg" type="text" placeholder="Ej: cuántos buzos hay en stock">
     <button onclick="enviar()">Enviar</button>
     <pre id="res"></pre>
+    <canvas id="chart" width="600" height="400"></canvas>
   </div>
 
   <script>
+    let chart;
+
     async function enviar() {
       const msg = document.getElementById("msg").value.trim();
       const resEl = document.getElementById("res");
@@ -101,7 +91,7 @@
       resEl.innerHTML = '<span class="loader"></span> Procesando consulta...';
 
       try {
-        const resp = await fetch("http://localhost:3000/api/chat", {
+        const resp = await fetch("/api/chat", {  // usa ruta relativa para producción
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: msg })
@@ -109,14 +99,41 @@
 
         if (!resp.ok) throw new Error("Error en la respuesta del servidor");
 
-        const data = await resp.json();
-        resEl.textContent = data.reply;
+        const { reply, data } = await resp.json();
+        resEl.textContent = reply;
+
+        if (data && data.length) {
+          const labels = data.map(item => item.nombre || item.categoria || "Sin nombre");
+          const valores = data.map(item => item.stock_actual || 0);
+
+          const ctx = document.getElementById("chart").getContext("2d");
+          if (chart) chart.destroy();
+          chart = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels,
+              datasets: [{
+                label: "Stock actual",
+                data: valores,
+                backgroundColor: "rgba(13, 110, 253, 0.7)"
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: true },
+                title: { display: true, text: "Stock de productos" }
+              }
+            }
+          });
+        }
       } catch (err) {
         resEl.textContent = "Error de conexión al servidor.";
         console.error(err);
       }
     }
-    document.getElementById("msg").addEventListener("keydown", function(e){
+
+    document.getElementById("msg").addEventListener("keydown", e => {
       if (e.key === "Enter") enviar();
     });
   </script>
